@@ -22,7 +22,19 @@ zinit light-mode for \
 ### End of Zinit's installer chunk
 
 ## ZSH options
+
+# setopt
 setopt AUTO_CD
+
+# Menu like completion selection
+zstyle ':completion:*' menu select
+
+# Case-Insensitive matching
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+
+## fzf
+source /usr/share/fzf/key-bindings.zsh
+source /usr/share/fzf/completion.zsh
 
 ## History
 setopt HIST_IGNORE_ALL_DUPS
@@ -36,17 +48,21 @@ HISTSIZE=25000
 SAVEHIST=10000
 HISTFILE=~/.zsh_history
 
-# PATH
-export PATH=$PATH:~/.cargo/bin:~/.local/bin
+## pyenv
+export PYENV_ROOT="$HOME/.pyenv"
 
-# ENV
+## PATH
+export PATH=~/.cargo/bin:~/.local/bin:$PYENV_ROOT/bin:$PATH
+
+## ENV
 export EDITOR=nvim
 
 ## Aliases
 alias k=kubectl
 
-alias ls='ls --color=auto'
-alias ll='ls -la --color=auto'
+alias ls='exa -bh --color=auto'
+alias l='ls'
+alias ll='ls -lbt modified --color=auto'
 alias l.='ls -d .* --color=auto'
 
 alias mv='mv -i'
@@ -58,7 +74,7 @@ alias gs='git status'
 alias ..="cd .."
 
 
-# SSH Keychain
+## SSH Keychain
 eval $(keychain --eval --quiet id_ed25519)
 
 ## Zinit
@@ -72,17 +88,14 @@ zinit wait lucid light-mode for \
   blockf atpull'zinit creinstall -q .' \
       zsh-users/zsh-completions
 
-# Menu like completion selection
-zstyle ':completion:*' menu select
-
-# Case-Insensitive matching
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
-
 # LS_COLORS
 zinit pack for ls_colors
 
-# FZF
-#zplugin pack"default+keys" for fzf
+# exa, fd, bat
+zinit wait"2" lucid as"null" from"gh-r" for \
+	mv"exa* -> exa" sbin ogham/exa \
+	mv"fd* -> fd" sbin"fd/fd" @sharkdp/fd \
+	mv"bat* -> bat" sbin"bat/bat" @sharkdp/bat  
 
 # Z
 zinit load agkozak/zsh-z

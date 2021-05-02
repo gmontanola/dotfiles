@@ -23,9 +23,6 @@ zinit light-mode for \
 
 ## ZSH options
 
-# setopt
-setopt AUTO_CD
-
 # Menu like completion selection
 zstyle ':completion:*' menu select
 
@@ -42,6 +39,8 @@ setopt HIST_IGNORE_SPACE
 setopt HIST_VERIFY
 setopt HIST_REDUCE_BLANKS
 setopt EXTENDED_HISTORY
+setopt SHAREHISTORY
+setopt INCAPPENDHISTORY
 
 HISTORY_IGNORE="&:ls:[bf]g:exit:reset:clear:cd:cd ..:cd.:.."
 HISTSIZE=25000
@@ -73,9 +72,13 @@ alias grep='grep --color=auto'
 alias gs='git status'
 alias ..="cd .."
 
-
-## SSH Keychain
-eval $(keychain --eval --quiet id_ed25519)
+# GPG Agent
+unset SSH_AGENT_PID
+if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
+  export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+fi
+export GPG_TTY=$(tty)
+gpg-connect-agent updatestartuptty /bye >/dev/null
 
 ## Zinit
 
@@ -85,22 +88,20 @@ zinit wait lucid light-mode for \
       zdharma/fast-syntax-highlighting \
   atload"_zsh_autosuggest_start" \
       zsh-users/zsh-autosuggestions \
-  blockf atpull'zinit creinstall -q .' \
+  blockf atpull'zinit creinstall -q $PWD' \
       zsh-users/zsh-completions
 
 # LS_COLORS
 zinit pack for ls_colors
 
-# exa, fd, bat
-zinit wait"2" lucid as"null" from"gh-r" for \
-	mv"exa* -> exa" sbin ogham/exa \
-	mv"fd* -> fd" sbin"fd/fd" @sharkdp/fd \
-	mv"bat* -> bat" sbin"bat/bat" @sharkdp/bat  
-
 # Z
 zinit load agkozak/zsh-z
+
+## pyenv init
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init -)"
+fi
 
 ## Starship.rs
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
 eval "$(starship init zsh)"
-

@@ -1,0 +1,12 @@
+[user]
+    email = gabriel@montanola.com
+    name = Gabriel Montañola
+	signingkey = 8D639BBB67F335D9
+[pull]
+    rebase = true
+[fetch]
+    prune = true
+[diff]
+    colorMoved = zebra
+[commit]
+    gpgsign = true

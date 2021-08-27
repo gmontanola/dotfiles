@@ -1,0 +1,35 @@
+shell = "bash -c '{}'"
+
+[[item]]
+file = "~/.config/sway/config"
+template = "sway"
+subtemplate = "colors"
+hook = "swaymsg reload"
+light = false
+
+[[item]]
+file = "~/.config/rofi/themes/colors.rasi"
+template = "rofi"
+subtemplate = "colors"
+rewrite = true
+
+[[item]]
+file= "~/.config/mako/config"
+template = "mako"
+hook = "killall mako"
+
+[[item]]
+file = "~/.config/nvim/colors/base16.vim"
+template = "vim"
+rewrite = true
+
+[[item]]
+file = "~/.base16_theme"
+template = "shell"
+rewrite = true
+hook = "eval (source ~/.zshrc)"
+
+[[item]]
+file = "~/.config/base16-fzf/base16.config"
+template = "fzf"
+rewrite = true

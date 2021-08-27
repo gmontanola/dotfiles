@@ -1,0 +1,22 @@
+default-timeout=10000
+
+# Start flavours
+## Base16 Pasque
+# Author: Gabriel Fontes (https://github.com/Misterio77)
+#
+# You can use these variables anywhere in the mako configuration file.
+
+background-color=#271C3A
+text-color=#DEDCDF
+border-color=#8E7DC6
+
+[urgency=low]
+background-color=#271C3A
+text-color=#804ead
+border-color=#8E7DC6
+
+[urgency=high]
+background-color=#271C3A
+text-color=#A92258
+border-color=#8E7DC6
+# End flavours

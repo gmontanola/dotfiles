@@ -1,0 +1,17 @@
+configuration {
+    modi:                "drun,run,ssh";
+    drun-display-format: "{icon} {name}";
+    threads:             0;
+    scroll-method:       0;
+    disable-history:     true;
+    fullscreen:          false;
+    hide-scrollbar:      true;
+    run-command:         "zsh -i -c '{cmd}'";
+    font:                "monospace 14";
+}
+
+element-icon {
+    size: 3.0ch;
+}
+
+@import "/home/gmontanola/.config/rofi/themes/basic.rasi"

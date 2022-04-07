@@ -1,0 +1,7 @@
+#!/bin/sh
+Environment=wayland
+export PATH=~/.local/bin:~/.cargo/bin:$PATH
+. /etc/profile.d/flatpak.sh 
+source ~/.zprofile
+exec sway
+

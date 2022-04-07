@@ -1,107 +1,147 @@
-### Added by Zinit's installer
-if [[ ! -f $HOME/.zinit/bin/zinit.zsh ]]; then
-    print -P "%F{33}▓▒░ %F{220}Installing %F{33}DHARMA%F{220} Initiative Plugin Manager (%F{33}zdharma/zinit%F{220})…%f"
-    command mkdir -p "$HOME/.zinit" && command chmod g-rwX "$HOME/.zinit"
-    command git clone https://github.com/zdharma/zinit "$HOME/.zinit/bin" && \
-        print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
-        print -P "%F{160}▓▒░ The clone has failed.%f%b"
-fi
+plugins_path=~/zsh-plugins
 
-source "$HOME/.zinit/bin/zinit.zsh"
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
+function zcompile-many() {
+  local f
+  for f; do zcompile -R -- "$f".zwc "$f"; done
+}
 
-# Load a few important annexes, without Turbo
-# (this is currently required for annexes)
-zinit light-mode for \
-    zinit-zsh/z-a-rust \
-    zinit-zsh/z-a-as-monitor \
-    zinit-zsh/z-a-patch-dl \
-    zinit-zsh/z-a-bin-gem-node
+# PATH extension
+path=(~/.cargo/bin ~/.local/bin $HOME/.serverless/bin ~/scripts $HOME/bin $path)
 
-### End of Zinit's installer chunk
+# fpath extension
+fpath=(~/zsh/completions $fpath)
 
-## Path
-export PATH=~/.cargo/bin:~/.local/bin:$PATH
+## ZSH options                                                                                                    
+# Menu like completion selection                                                                                  
+zstyle ':completion:*' menu select                                                                                
 
-## ZSH options
-# Menu like completion selection
-zstyle ':completion:*' menu select
+# Case-Insensitive matching                                                                                       
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' 
 
-# Case-Insensitive matching
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+# emacs for now
+bindkey -e
 
-# History
-setopt HIST_IGNORE_ALL_DUPS
-setopt HIST_IGNORE_SPACE
-setopt HIST_VERIFY
-setopt HIST_REDUCE_BLANKS
-setopt EXTENDED_HISTORY
-setopt SHAREHISTORY
-setopt INCAPPENDHISTORY
+# Control-arrows
+bindkey "^[[1;5D" backward-word
+bindkey "^[[1;5C" forward-word
 
-HISTORY_IGNORE="&:ls:[bf]g:exit:reset:clear:cd:cd ..:cd.:.."
-HISTSIZE=25000
-SAVEHIST=10000
-HISTFILE=~/.zsh_history
-
-## Aliases
-alias k=kubectl
-alias ls='exa -bh --color=auto'
-alias l='ls'
-alias ll='ls -lbt modified --color=auto'
-alias l.='ls -d .* --color=auto'
-alias mv='mv -i'
-alias cp='cp -i'
-alias grep='grep --color=auto'
-alias gs='git status'
-alias ..="cd .."
-
-## GPG Agent
-unset SSH_AGENT_PID
-if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
-  export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
-fi
-export GPG_TTY=$(tty)
+## GPG Agent                                                                                                      
+unset SSH_AGENT_PID                                                                                               
+if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then                                                                
+  export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"                                                  
+fi                                                                                                                
+export GPG_TTY=$(tty)                                                                                             
 gpg-connect-agent updatestartuptty /bye >/dev/null
 
-## Zinit
-# Autosuggest & Completion
-zinit wait lucid light-mode for \
-  atinit"zicompinit; zicdreplay" \
-      zdharma/fast-syntax-highlighting \
-  atload"_zsh_autosuggest_start" \
-      zsh-users/zsh-autosuggestions \
-  blockf atpull'zinit creinstall -q $PWD' \
-      zsh-users/zsh-completions
+# Clone plugins
+if [[ ! -e $plugins_path/fast-syntax-highlighting ]]; then
+  git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git $plugins_path/fast-syntax-highlighting
+  zcompile-many $plugins_path/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+fi
+if [[ ! -e $plugins_path/zsh-autosuggestions ]]; then
+  git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git $plugins_path/zsh-autosuggestions
+  zcompile-many $plugins_path/zsh-autosuggestions/{zsh-autosuggestions.zsh,src/**/*.zsh}
+fi
+if [[ ! -e $plugins_path/zsh-z ]]; then
+  git clone --depth=1 https://github.com/agkozak/zsh-z.git $plugins_path/zsh-z
+  zcompile-many $plugins_path/zsh-z/zsh-z.plugin.zsh
+fi
+if [[ ! -e $plugins_path/zsh-completions ]]; then
+  git clone --depth=1 https://github.com/zsh-users/zsh-completions.git $plugins_path/zsh-completions
+  zcompile-many $plugins_path/zsh-completions/zsh-completions.plugin.zsh
+fi
+if [[ ! -e $plugins_path/powerlevel10k ]]; then
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $plugins_path/powerlevel10k
+  make -C $plugins_path/powerlevel10k pkg
+fi
+if [[ ! -e $plugins_path/fzf-tab ]]; then
+  git clone --depth=1 https://github.com/Aloxaf/fzf-tab.git $plugins_path/fzf-tab
+  zcompile-many $plugins_path/fzf-tab/fzf-tab.plugin.zsh
+fi
 
-# LS_COLORS
-zinit pack for ls_colors
+# Activate Powerlevel10k Instant Prompt.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 
-# Z
-zinit load agkozak/zsh-z
+# Load plugins.
+autoload -Uz compinit && compinit
+source $plugins_path/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+source $plugins_path/fzf-tab/fzf-tab.zsh
+source $plugins_path/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $plugins_path/zsh-z/zsh-z.plugin.zsh
+source $plugins_path/zsh-completions/zsh-completions.plugin.zsh
+source $plugins_path/powerlevel10k/powerlevel10k.zsh-theme
+source ~/.p10k.zsh
+
+## fzf
+source /usr/share/fzf/key-bindings.zsh                                                                            
+source /usr/share/fzf/completion.zsh  
+
+## asdf                                                                                                           
+. /opt/asdf-vm/asdf.sh
+
+##LS_COLORS
+. /usr/share/LS_COLORS/dircolors.sh
 
 ## pyenv
 eval "$(pyenv init -)"
 
-## nvm
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# Compile plugins.
+[[ ~/.zcompdump.zwc -nt ~/.zcompdump ]] || zcompile-many ~/.zcompdump
+unfunction zcompile-many
 
-## fzf
-source /usr/share/fzf/key-bindings.zsh
-source /usr/share/fzf/completion.zsh
+## Bash completions
+autoload -U bashcompinit && bashcompinit
 
-## Base16
-# Base16-fzf
-source ~/.config/base16-fzf/base16.config
+eval "$(register-python-argcomplete pipx)"
+complete -C '/usr/bin/aws_completer' aws
 
-# Base16-shell
-BASE16_SHELL="$HOME/.config/base16-shell/"
-[ -n "$PS1" ] && \
-    [ -s "$BASE16_SHELL/profile_helper.sh" ] && \
-        eval "$("$BASE16_SHELL/profile_helper.sh")"
+## History
+setopt EXTENDED_HISTORY
+setopt INC_APPEND_HISTORY
+setopt SHARE_HISTORY
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_FIND_NO_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_VERIFY
 
-## Starship.rs
-export STARSHIP_CONFIG=~/.config/starship/starship.toml
-eval "$(starship init zsh)"
+HISTORY_IGNORE="&:ls:[bf]g:exit:reset:clear:cd:cd ..:cd.:.."                                                      
+HISTSIZE=25000                                                                                                    
+SAVEHIST=10000                                                                                                    
+HISTFILE=~/.zsh_history   
+
+## Aliases                                                                                                        
+alias k='kubectl'                                                                                                 
+alias ls='exa -bh --group-directories-first'                                                                      
+alias ll='ls -l --git'                                                                                            
+alias l='ll -a'                                                                                                   
+alias lr='ll -T'                                                                                                  
+alias lx='ll -sextension'                                                                                         
+alias lk='ll -ssize'                                                                                              
+alias lt='ll -smodified'                                                                                          
+alias lc='ll -schanged'                                                                                           
+alias l.='ls -d .*'                                                                                               
+alias mv='mv -i'                                                                                                  
+alias cp='cp -i'                                                                                                  
+alias grep='grep --color=auto'                                                                                    
+alias ..="cd .."                                                                                                  
+alias bzip2='pbzip2'                                                                                              
+alias bunzip2='pbzip2 -d'                                                                                         
+alias gzip='pigz'                                                                                                 
+alias gunzip='pigz -d'                                                                                            
+alias xz='pixz'
+
+# Builtkit is fun
+export DOCKER_BUILDKIT=1
+
+# pins a default version for pipx
+export PIPX_DEFAULT_PYTHON="$HOME/.pyenv/versions/3.9.9/bin/python"
+
+# Generated by Hermit; START; DO NOT EDIT.
+eval "$(test -x $HOME/bin/hermit && $HOME/bin/hermit shell-hooks --print --zsh)"
+# Generated by Hermit; END; DO NOT EDIT.

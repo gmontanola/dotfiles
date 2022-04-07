@@ -1,6 +1,0 @@
-{
-  "yaml.schemas": {
-      "kubernetes": "/*.yaml"
-  },
-  "diagnostic.displayByAle":true
-}

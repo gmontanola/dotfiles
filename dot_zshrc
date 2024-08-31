@@ -1,0 +1,104 @@
+# zsh
+plugins_path=~/zsh-plugins
+fpath+=~/zsh-completions
+
+function zcompile-many() {
+  local f
+  for f; do zcompile -R -- "$f".zwc "$f"; done
+}
+
+# Menu like completion selection                                                                                  
+zstyle ':completion:*' menu select                                                                                
+
+# Case-Insensitive matching                                                                                       
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' 
+
+# emacs for now
+bindkey -e
+
+# Clone plugins
+if [[ ! -e $plugins_path/fast-syntax-highlighting ]]; then
+  git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git $plugins_path/fast-syntax-highlighting
+  zcompile-many $plugins_path/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+fi
+if [[ ! -e $plugins_path/zsh-autosuggestions ]]; then
+  git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git $plugins_path/zsh-autosuggestions
+  zcompile-many $plugins_path/zsh-autosuggestions/{zsh-autosuggestions.zsh,src/**/*.zsh}
+fi
+if [[ ! -e $plugins_path/zsh-completions ]]; then
+  git clone --depth=1 https://github.com/zsh-users/zsh-completions.git $plugins_path/zsh-completions
+  zcompile-many $plugins_path/zsh-completions/zsh-completions.plugin.zsh
+fi
+if [[ ! -e $plugins_path/powerlevel10k ]]; then
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $plugins_path/powerlevel10k
+  make -C $plugins_path/powerlevel10k pkg
+fi
+if [[ ! -e $plugins_path/fzf-tab ]]; then
+  git clone --depth=1 https://github.com/Aloxaf/fzf-tab.git $plugins_path/fzf-tab
+  zcompile-many $plugins_path/fzf-tab/fzf-tab.plugin.zsh
+fi
+
+# Activate Powerlevel10k Instant Prompt.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Load plugins.
+autoload -Uz compinit && compinit
+source $plugins_path/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+source $plugins_path/fzf-tab/fzf-tab.zsh
+source $plugins_path/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $plugins_path/zsh-completions/zsh-completions.plugin.zsh
+source $plugins_path/powerlevel10k/powerlevel10k.zsh-theme
+source ~/.p10k.zsh
+
+export PATH="$PATH:/Users/gmontanola/.local/bin"
+
+# Compile plugins.
+[[ ~/.zcompdump.zwc -nt ~/.zcompdump ]] || zcompile-many ~/.zcompdump
+unfunction zcompile-many
+
+
+## 1password
+export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+
+## alias
+alias k='kubectl'                                                                                                 
+alias ls='eza -bh --group-directories-first'                                                                      
+alias ll='ls -l --git'                                                                                            
+alias l='ll -a'                                                                                                   
+alias lr='ll -T'                                                                                                  
+alias lx='ll -sextension'                                                                                         
+alias lk='ll -ssize'                                                                                              
+alias lt='ll -smodified'                                                                                          
+alias lc='ll -schanged'                                                                                           
+alias l.='ls -d .*'                                                                                               
+alias mv='mv -i'                                                                                                  
+alias cp='cp -i'                                                                                                  
+alias grep='grep --color=auto'                                                                                    
+alias ..="cd .."                                                                                                  
+alias bzip2='pbzip2'                                                                                              
+alias bunzip2='pbzip2 -d'                                                                                         
+alias gzip='pigz'                                                                                                 
+alias gunzip='pigz -d'                                                                                            
+alias xz='pixz'
+
+## brew
+if type brew &>/dev/null
+then
+  FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+
+  autoload -Uz compinit
+  compinit
+fi
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+## atuin
+eval "$(atuin init zsh)"
+
+## mise
+eval "$(mise activate zsh)"
+
+## zoxide
+eval "$(zoxide init zsh)"

@@ -1,0 +1,21 @@
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+[commit]
+	gpgsign = true
+[user]
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA3/RrZNwP0NG01kro0XfRx+JIa1s4eCImyW8UUlEDxX
+	name = Gabriel Montañola
+	email = gabriel@montanola.com
+[diff]
+  tool = difftastic
+  external = difft
+[difftool]
+  prompt = false
+[difftool "difftastic"]
+  cmd = difft "$LOCAL" "$REMOTE"
+[pager]
+  difftool = true
+[init]
+	defaultBranch = main

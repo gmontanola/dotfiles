@@ -102,3 +102,7 @@ eval "$(mise activate zsh)"
 
 ## zoxide
 eval "$(zoxide init zsh)"
+
+## uv
+. "$HOME/.cargo/env"
+eval "$(uv generate-shell-completion zsh)"

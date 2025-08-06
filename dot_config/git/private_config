@@ -19,3 +19,8 @@
   difftool = true
 [init]
 	defaultBranch = main
+[alias]
+	root = rev-parse --show-toplevel
+	rebase-default = "!f() { DEFAULT=$(git symbolic-ref refs/remotes/origin/HEAD | sed \"s@^refs/remotes/origin/@@\"); git fetch origin && git rebase $(git merge-base HEAD origin/$DEFAULT) --onto=origin/$DEFAULT; }; f"
+[rerere]
+	enabled = true

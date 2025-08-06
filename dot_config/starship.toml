@@ -1,0 +1,21 @@
+[git_branch]
+truncation_length = 9
+truncation_symbol = ''
+ignore_branches = ['master', 'main']
+symbol = " "
+
+[env_var.MISE_ENV]
+format = '(\[mise [$env_value](bold purple)\]) '
+default = ""
+disabled = false
+
+[python]
+version_format = '${major}.${minor}'
+symbol = " "
+format = '[${symbol}(${version} )(\($virtualenv\) )]($style)'
+
+[aws]
+symbol = "  "
+
+[nodejs]
+symbol = " "

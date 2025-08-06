@@ -1,6 +1,15 @@
 # zsh
-plugins_path=~/zsh-plugins
-fpath+=~/zsh-completions
+plugins_path=$ZDOTDIR/plugins
+fpath+=$ZDOTDIR/completions
+
+## env
+export EDITOR=nvim
+
+## brew
+if type brew &>/dev/null
+then
+  FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+fi
 
 function zcompile-many() {
   local f
@@ -15,49 +24,45 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 
 # emacs for now
 bindkey -e
+bindkey "^[[1;2C" forward-word
+bindkey "^[[1;2D" backward-word
+autoload -z edit-command-line
+zle -N edit-command-line
+bindkey "^X^E" edit-command-line
 
-# Clone plugins
-if [[ ! -e $plugins_path/fast-syntax-highlighting ]]; then
-  git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git $plugins_path/fast-syntax-highlighting
-  zcompile-many $plugins_path/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+# Load plugins
+if [[ ! -e $ZDOTDIR/plugins/zsh-autosuggestions ]]; then
+  git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git $ZDOTDIR/plugins/zsh-autosuggestions
+  zcompile-many $ZDOTDIR/plugins/zsh-autosuggestions/{zsh-autosuggestions.zsh,src/**/*.zsh}
 fi
-if [[ ! -e $plugins_path/zsh-autosuggestions ]]; then
-  git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git $plugins_path/zsh-autosuggestions
-  zcompile-many $plugins_path/zsh-autosuggestions/{zsh-autosuggestions.zsh,src/**/*.zsh}
+if [[ ! -e $ZDOTDIR/plugins/fast-syntax-highlighting ]]; then
+  git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git $ZDOTDIR/plugins/fast-syntax-highlighting
+  zcompile-many $ZDOTDIR/plugins/fast-syntax-highlighting/{fast-syntax-highlighting.plugin.zsh,**/*.zsh}
 fi
-if [[ ! -e $plugins_path/zsh-completions ]]; then
-  git clone --depth=1 https://github.com/zsh-users/zsh-completions.git $plugins_path/zsh-completions
-  zcompile-many $plugins_path/zsh-completions/zsh-completions.plugin.zsh
+if [[ ! -e $ZDOTDIR/plugins/fzf-tab ]]; then
+  git clone --depth=1 https://github.com/Aloxaf/fzf-tab.git $ZDOTDIR/plugins/fzf-tab
+  zcompile-many $ZDOTDIR/plugins/fzf-tab/fzf-tab.zsh
 fi
-if [[ ! -e $plugins_path/powerlevel10k ]]; then
-  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $plugins_path/powerlevel10k
-  make -C $plugins_path/powerlevel10k pkg
-fi
-if [[ ! -e $plugins_path/fzf-tab ]]; then
-  git clone --depth=1 https://github.com/Aloxaf/fzf-tab.git $plugins_path/fzf-tab
-  zcompile-many $plugins_path/fzf-tab/fzf-tab.plugin.zsh
-fi
-
-# Activate Powerlevel10k Instant Prompt.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+if [[ ! -e $ZDOTDIR/plugins/zsh-completions ]]; then
+  git clone --depth=1 https://github.com/zsh-users/zsh-completions.git $ZDOTDIR/plugins/zsh-completions
+  zcompile-many $ZDOTDIR/plugins/zsh-completions/zsh-completions.plugin.zsh
 fi
 
-# Load plugins.
-autoload -Uz compinit && compinit
-source $plugins_path/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
-source $plugins_path/fzf-tab/fzf-tab.zsh
-source $plugins_path/zsh-autosuggestions/zsh-autosuggestions.zsh
-source $plugins_path/zsh-completions/zsh-completions.plugin.zsh
-source $plugins_path/powerlevel10k/powerlevel10k.zsh-theme
-source ~/.p10k.zsh
+autoload -Uz zrecompile
+autoload -Uz compinit
+dump=$ZSH_COMPDUMP
 
-export PATH="$PATH:/Users/gmontanola/.local/bin"
+if [[ -s $dump(#qN.mh+24) && (! -s "$dump.zwc" || "$dump" -nt "$dump.zwc") ]]; then
+    compinit -i d $ZSH_COMPDUMP
+    zrecompile $ZSH_COMPDUMP
+fi
+compinit -C
+
+export PATH="$PATH:/Users/$USER/.local/bin"
 
 # Compile plugins.
-[[ ~/.zcompdump.zwc -nt ~/.zcompdump ]] || zcompile-many ~/.zcompdump
+[[ $ZDOTDIR/.zcompdump.zwc -nt $ZDOTDIR/.zcompdump ]] || zcompile-many $ZDOTDIR/.zcompdump
 unfunction zcompile-many
-
 
 ## 1password
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
@@ -65,7 +70,7 @@ export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agen
 ## alias
 alias k='kubectl'                                                                                                 
 alias ls='eza -bh --group-directories-first'                                                                      
-alias ll='ls -l --git'                                                                                            
+alias ll='ls -l --git --icons=always'                                                                                            
 alias l='ll -a'                                                                                                   
 alias lr='ll -T'                                                                                                  
 alias lx='ll -sextension'                                                                                         
@@ -82,17 +87,10 @@ alias bunzip2='pbzip2 -d'
 alias gzip='pigz'                                                                                                 
 alias gunzip='pigz -d'                                                                                            
 alias xz='pixz'
+alias cdr='cd $(git root)'
 
-## brew
-if type brew &>/dev/null
-then
-  FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
-
-  autoload -Uz compinit
-  compinit
-fi
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+## fzf
+source <(fzf --zsh)
 
 ## atuin
 eval "$(atuin init zsh)"
@@ -105,4 +103,24 @@ eval "$(zoxide init zsh)"
 
 ## uv
 . "$HOME/.cargo/env"
-eval "$(uv generate-shell-completion zsh)"
+
+
+source $plugins_path/catppuccin_mocha-zsh-syntax-highlighting.zsh
+source $plugins_path/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+source $plugins_path/fzf-tab/fzf-tab.zsh
+source $plugins_path/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $plugins_path/zsh-completions/zsh-completions.plugin.zsh
+
+export FZF_DEFAULT_OPTS=" \
+--color=bg+:#363a4f,bg:#24273a,spinner:#f4dbd6,hl:#ed8796 \
+--color=fg:#cad3f5,header:#ed8796,info:#c6a0f6,pointer:#f4dbd6 \
+--color=marker:#b7bdf8,fg+:#cad3f5,prompt:#c6a0f6,hl+:#ed8796 \
+--color=selected-bg:#494d64 \
+--multi"
+fast-theme XDG:catppuccin-macchiato --quiet
+export BAT_THEME="Catppuccin Macchiato"
+
+## starship
+eval "$(starship init zsh)"
+
+alias claude="/Users/gabriel/.claude/local/claude"
